@@ -87,6 +87,7 @@ In scope:
 Out of scope:
 
 - Vision object detection for static objects
+- Exact metric definition. It requires full automotive system deging with safety goals, functional safety considerations and udage of road fatalities statistics.
 - Model speedup (inference time optimizations)
 - VRAM constraints
 - Interface with other modules
@@ -100,7 +101,7 @@ Out of scope:
 
 > How will you frame the problem? For example, fraud detection can be framed as an unsupervised (outlier detection, graph cluster) or supervised problem (e.g., classification).
 
-Object detection, supervised. For every frame output list of object bounding boxes, classified.
+Object detection, supervised. For every frame output list of object bounding boxes with assigned label.
 
 ### 5.2. Data
 
@@ -122,52 +123,50 @@ Yolo or other state of the arch object detector. Train with data.
 >
 > If you're A/B testing, how will you assign treatment and control (e.g., customer vs. session-based) and what metrics will you measure? What are the success and [guardrail](https://medium.com/airbnb-engineering/designing-experimentation-guardrails-ed6a976ec669) metrics?
 
-Describe metrics here.
+TODO: Describe metrics here.
 
 ## 6. Implementation
 
 ### 6.1. High-level design
 
-> ![](https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Data-flow-diagram-example.svg/1280px-Data-flow-diagram-example.svg.png)
-> 
-> Start by providing a big-picture view. [System-context diagrams](https://en.wikipedia.org/wiki/System_context_diagram) and [data-flow diagrams](https://en.wikipedia.org/wiki/Data-flow_diagram) work well.d
+> Start by providing a big-picture view.
 
-Draw context diagram here: reduce road fatalities -> do not crash moving objects -> avoid moving objects -> behaivior prediction for moving objects -> trajectory prediction for moving objects -> vision object detection 
-
-For the following description propose the diagram type and write code for drawing diagram.
-context: autonomous car system design. It is actually a safety goal decomposition. The goal is to show where in the architecture the vision object detection module is and what other modules will use it. Missing options (where stated "one of the options") display with a separate leaf on the save level (with ... text?)
-reduce road fatalities -> (one of the options)  do not crash moving objects -> (one of the options) avoid moving objects -> (one of the options) behavior prediction for moving objects -> (one of the options) trajectory prediction for moving objects -> (one of the options) object detection  -> (consists of two parts) - vision object detection, lidar object detection
+Visual object detection is a module that predicts moving objects on every video frame. One of the users in overall system is `Trajectory prediction for moving objects` module. Find below the possible business goal decomposition. Blocks with `...` mean that there might be other equivalent blocks on the same tree level. Last level is `AND` decomposition used to make the system safer by calculation the same task from two different signal sources.
 
 ```mermaid
 graph TD
     A[Reduce road fatalities]
-    A --> B[...]
-    A --> C[Do not crash moving objects]
-    C --> D[...]
-    C --> E[Avoid moving objects]
-    E --> F[...]
-    E --> G[Behavior prediction for moving objects]
-    G --> H[...]
-    G --> I[Trajectory prediction for moving objects]
-    I --> J[...]
-    I --> K[Object detection]
-    K --> N[Vision object detection]
-    K --> O[Lidar object detection]
+    A --> B((OR)) --> B1[...]
+    B --> C[Do not crash moving objects]
+    C --> D((OR)) --> D1[...]
+    D --> E[Avoid moving objects]
+    E --> F((OR)) --> F1[...]
+    F --> G[Behavior prediction for moving objects]
+    G --> H((OR)) --> H1[...]
+    H --> I[Trajectory prediction for moving objects]
+    I --> J((OR)) --> J1[...]
+    J --> K[Object detection]
+    K --> L[AND] --> L1[Vision object detection]
+    L --> L2[Lidar object detection]
 ```
 
 ### 6.2. Infra
 
 > How will you host your system? On-premise, cloud, or hybrid? This will define the rest of this section
 
+System is run on emdedded device with GPU (like NVidia drive PX) in the car. 
+
 ### 6.3. Performance (Throughput, Latency)
 
 > How will your system meet the throughput and latency requirements? Will it scale vertically or horizontally?
 
-Realtime, X ms for frame, Y MB VRAM peak consumption. The model shall be optimized for inference time by industry-standard inference-time optimization techniques (pruning, transfer learning, quantization). Out of scope for this design document,
+Realtime, X ms for frame, Y MB VRAM peak consumption. The model shall be optimized for inference time by industry-standard inference-time optimization techniques (pruning, transfer learning, quantization). Out of scope for this design document.
 
 ### 6.8. Integration points
 
-How will your system integrate with upstream data and downstream users?
+> How will your system integrate with upstream data and downstream users?
+
+Module integration is out of the scope of the document.
 
 ### 6.9. Risks & Uncertainties
 
@@ -175,8 +174,8 @@ How will your system integrate with upstream data and downstream users?
 
 Risks:
 
-- Missing dynamic object may result in crash
-- Misdetection un existing objects may result in dangerous maneuvers (that are better to avoid).
+- Missing dynamic object may result in crash.
+- Misdetection of existing objects may result in dangerous maneuvers (that are better to avoid).
 
 Uncertainties:
 
@@ -186,41 +185,26 @@ Uncertainties:
 
 ### 7.1. Alternatives
 
-What alternatives did you consider and exclude? List pros and cons of each alternative and the rationale for your decision.
+> What alternatives did you consider and exclude? List pros and cons of each alternative and the rationale for your decision.
 
 ### 7.2. Experiment Results
 
-Share any results of offline experiments that you conducted.
+> Share any results of offline experiments that you conducted.
 
 ### 7.3. Performance benchmarks
 
-Share any performance benchmarks you ran (e.g., throughput vs. latency vs. instance size/count).
+> Share any performance benchmarks you ran (e.g., throughput vs. latency vs. instance size/count).
 
 ### 7.4. Milestones & Timeline
 
-What are the key milestones for this system and the estimated timeline?
+> What are the key milestones for this system and the estimated timeline?
 
 ### 7.5. Glossary
 
-Define and link to business or technical terms.
+> Define and link to business or technical terms.
 
 ### 7.6. References
 
-Add references that you might have consulted for your methodology.
+> Add references that you might have consulted for your methodology.
 
----
-## Other templates, examples, etc
-- [A Software Design Doc](https://www.industrialempathy.com/posts/design-doc-a-design-doc/) `Google`
-- [Design Docs at Google](https://www.industrialempathy.com/posts/design-docs-at-google/) `Google`
-- [Product Spec of Emoji Reactions on Twitter Messages](https://docs.google.com/document/d/1sUX-sm5qZ474PCQQUpvdi3lvvmWPluqHOyfXz3xKL2M/edit#heading=h.554u12gw2xpd) `Twitter`
-- [Design Docs, Markdown, and Git](https://caitiem.com/2020/03/29/design-docs-markdown-and-git/) `Microsoft`
-- [Technical Decision-Making and Alignment in a Remote Culture](https://multithreaded.stitchfix.com/blog/2020/12/07/remote-decision-making/) `Stitchfix`
-- [Design Documents for Chromium](https://www.chromium.org/developers/design-documents) `Chromium`
-- [PRD Template](https://works.hashicorp.com/articles/prd-template) and [RFC Template](https://works.hashicorp.com/articles/rfc-template) (example RFC: [Manager Charter](https://works.hashicorp.com/articles/manager-charter)) `HashiCorp`
-- [Pitch for To-Do Groups and Group Notifications](https://basecamp.com/shapeup/1.5-chapter-06#examples) `Basecamp`
-- [The Anatomy of a 6-pager](https://writingcooperative.com/the-anatomy-of-an-amazon-6-pager-fc79f31a41c9) and an [example](https://docs.google.com/document/d/1LPh1LWx1z67YFo67DENYUGBaoKk39dtX7rWAeQHXzhg/edit) `Amazon`
-- [Writing for Distributed Teams](http://veekaybee.github.io/2021/07/17/p2s/), [How P2 Changed Automattic](https://ma.tt/2009/05/how-p2-changed-automattic/) `Automattic`
-- [Writing Technical Design Docs](https://medium.com/machine-words/writing-technical-design-docs-71f446e42f2e), [Writing Technical Design Docs, Revisited](https://medium.com/machine-words/writing-technical-design-docs-revisited-850d36570ec) `AWS`
-- [How to write a good software design doc](https://www.freecodecamp.org/news/how-to-write-a-good-software-design-document-66fcf019569c/) `Plaid`
-
-Contributions [welcome](https://github.com/eugeneyan/ml-design-docs/pulls)!
+TBD
