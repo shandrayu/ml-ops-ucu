@@ -3,7 +3,7 @@
 ## TODO
 
 - Choose object detection model
-  - Small. For example ,Nvidia Drive PX 2 has 16 GB LPDDR4.
+  - Small. For example, Nvidia Drive PX 2 has 16 GB LPDDR4.
 - Can it be pretrained?
 - Training code (preferebly from pretrained)
 - Dataset filtering code (create pandas dataset from zenseact?)
