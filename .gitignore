@@ -2,3 +2,5 @@
 data/**
 wandb/**
 *.pt
+YOLOv8/**
+notebooks/*.csv

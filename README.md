@@ -16,5 +16,5 @@
    ```bash
    yolo task=detect mode=train epochs=25 batch=32 plots=True \
    model=data/yolo_weights/yolov10n.pt \
-   data=data/zod/yolo_full_PL/dataset.yaml
+   data=data/zod/yolo_mini/dataset.yaml
    ```

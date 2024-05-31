@@ -15,8 +15,16 @@ from zod.utils.utils import str_from_datetime
 # Parameters
 dataset_root = "/home/yshand/repos/ml-ops-ucu/data/zod"
 output_dir = dataset_root
-classes = ["Vehicle", "Pedestrian", "VulnerableVehicle", "Animal"]
-countries_list = [[]]  # All countries, then specific countries
+classes = ["Vehicle", "Pedestrian", "VulnerableVehicle"]
+countries_list =[
+    # ["DE"],
+    # ["DE", "FR", "NO"],
+    # ["DE", "FR", "NO", "HU"],
+    # ["DE", "FR", "NO", "HU", "GB"],
+    # ["DE", "FR", "NO", "HU", "GB", "IE"],
+    # []
+]
+
 anonymization = Anonymization.BLUR
 use_png = False
 version = "full"
@@ -242,7 +250,7 @@ def convert_to_yolo_format(
         process_map(
             create_symlink_and_label,
             args_list,
-            desc=f"Creating symlinks and labels for {split}",
+            desc=f"Creating symlinks and labels for {yolo_folder_name}/{split}",
             chunksize=50 if version == "full" else 1,
         )
 
