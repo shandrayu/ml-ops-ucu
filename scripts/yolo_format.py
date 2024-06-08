@@ -12,19 +12,20 @@ from zod.constants import AnnotationProject, Anonymization
 from zod.data_classes.frame import ZodFrame
 from zod.utils.utils import str_from_datetime
 
+def generate_nested_list(base_list):
+    nested_list = []
+    
+    for i in range(len(base_list)):
+        nested_list.append(base_list[:i+1])
+    
+    return nested_list
+
 # TODO: make as command line arguments
 # Parameters
 dataset_root = "/home/yshand/repos/ml-ops-ucu/data/zod"
 output_dir = dataset_root
 classes = ["Vehicle", "Pedestrian", "VulnerableVehicle"]
-countries_list =[
-    # ["DE"],
-    # ["DE", "FR", "NO"],
-    # ["DE", "FR", "NO", "HU"],
-    # ["DE", "FR", "NO", "HU", "GB"],
-    # ["DE", "FR", "NO", "HU", "GB", "IE"],
-    # []
-]
+countries_list = generate_nested_list(["FR", "NO", "GB", "IE", "LU"])
 
 anonymization = Anonymization.BLUR
 use_png = False
@@ -98,6 +99,9 @@ def generate_coco_json(
     use_png: bool,
 ) -> dict:
     frame_infos = [dataset[frame_id] for frame_id in dataset.get_split(split)]
+
+    if not frame_infos:
+        return {}
 
     # Filter frame_infos to include only valid frames
     filtered_frame_infos = [
