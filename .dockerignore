@@ -1,0 +1,18 @@
+.git*
+data
+notebooks
+scripts
+wandb
+YOLOv8
+
+# Models
+*.pt
+!YOLOv8/yolov10_best.pt
+
+# Ignore Python cache files
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Ignore virtual environments
+.venv**

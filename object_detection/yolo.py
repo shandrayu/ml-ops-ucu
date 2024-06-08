@@ -1,4 +1,5 @@
-from ultralytics import YOLOv10
+# TODO: it should be YOLOv10, but it does not work for some reason
+from ultralytics import YOLO
 from typing import List, Tuple
 from dataclasses import dataclass
 import cv2
@@ -22,7 +23,7 @@ class YoloTrainer:
         """
         self.model_path = model_path
         self.data_config_path = data_config_path
-        self.model = YOLOv10(model_path)
+        self.model = YOLO(model_path)
         self.project = project
 
     # TODO: read training parameters from the file. If we will add augmentation, there will be too much parameters
@@ -57,7 +58,7 @@ class YoloInference:
         assert (
             "yolov10" in model_name
         ), f"Rename model name '{model_name}' to contain 'yolov10'. Otherwise, it will fail...."
-        self.model = YOLOv10(model_path)
+        self.model = YOLO(model_path)
 
     def run(self, image_path):
         """
