@@ -5,3 +5,4 @@ wandb/**
 YOLOv8/**
 notebooks/*.csv
 **/*.pyc
+**/*.jpg
