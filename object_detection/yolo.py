@@ -1,7 +1,18 @@
 from ultralytics import YOLO
+from typing import List, Tuple
+from dataclasses import dataclass
+import cv2
+import base64
+
+@dataclass
+class ObjectDetectionResult:
+    xyxy: List[Tuple[int, int, int, int]]  # Coordinates of detected objects
+    confidence: List[float]  # Probabilities of detected objects
+    # TODO: only for debug, in real system it will not be needed
+    visualization_image: bytes  # Image in binary form
 
 
-class YoloWrapper:
+class YoloTrainer:
     def __init__(self, model_path, data_config_path, project):
         """
         Initialize the YOLO API with the model and data configuration.
@@ -14,6 +25,7 @@ class YoloWrapper:
         self.model = YOLO(model_path)
         self.project = project
 
+    # TODO: read training parameters from the file. If we will add augmentation, there will be too much parameters
     def train(self, run_name, epochs=25, batch=32, plots=True):
         """
         Train the YOLO model.
@@ -32,7 +44,22 @@ class YoloWrapper:
             name=run_name,
         )
 
-    def inference(self, image_path):
+
+class YoloInference:
+    def __init__(self, model_path) -> List[ObjectDetectionResult]:
+        """
+        Initialize the YOLO model.
+
+        :param model_path: Path to the YOLO model.
+        """
+        # https://github.com/THU-MIG/yolov10/issues/46
+        model_name = model_path.split("/")[-1]
+        assert (
+            "yolov10" in model_name
+        ), f"Rename model name '{model_name}' to contain 'yolov10'. Otherwise, it will fail...."
+        self.model = YOLO(model_path)
+
+    def run(self, image_path):
         """
         Run inference on an image using the YOLO model.
 
@@ -40,18 +67,17 @@ class YoloWrapper:
         :return: Inference results.
         """
         results = self.model.predict(image_path)
-        return results
+        result_objects = []
+        for result in results:
+            boxes = result.boxes
+            visualization_img = result.plot()
+            _, buffer = cv2.imencode(".jpg", visualization_img)
+            encoded_image = base64.b64encode(buffer)
+            r = ObjectDetectionResult(
+                xyxy=boxes.xyxy.cpu().numpy().astype(int),
+                confidence=boxes.conf.cpu().numpy(),
+                visualization_image=encoded_image,
+            )
+            result_objects.append(r)
 
-
-if __name__ == "__main__":
-    yolo_api = YoloWrapper(
-        model_path="data/yolo_weights/yolov10n.pt",
-        data_config_path="data/zod/yolo_mini/dataset.yaml",
-    )
-
-    # Train the model
-    yolo_api.train(epochs=25, batch=32, plots=True)
-
-    # Run inference on an image
-    inference_results = yolo_api.inference("path/to/image.jpg")
-    print(inference_results)
+        return result_objects

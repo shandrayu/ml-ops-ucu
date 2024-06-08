@@ -6,7 +6,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.abspath(os.path.join(current_dir, os.pardir))
 sys.path.insert(0, parent_dir)
 
-from object_detection.yolo import YoloWrapper
+from object_detection.yolo import YoloTrainer
 
 
 def run_yolo_training(models, batches, epochs, datasets, project_name):
@@ -27,12 +27,12 @@ def run_yolo_training(models, batches, epochs, datasets, project_name):
                         f"{dataset}_{model.split('/')[-1]}_batch{batch}_epochs{epoch}"
                     )
                     data_config_path = f"data/zod/{dataset}/dataset.yaml"
-                    yolo_wrapper = YoloWrapper(
+                    yolo = YoloTrainer(
                         model_path=model,
                         data_config_path=data_config_path,
                         project=project_name,
                     )
-                    yolo_wrapper.train(epochs=epoch, batch=batch, run_name=run_name)
+                    yolo.run_training(epochs=epoch, batch=batch, run_name=run_name)
 
 
 if __name__ == "__main__":
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     models = ["data/yolo_weights/yolov10n.pt"]
     batches = [16]
-    epochs = [5]
+    epochs = [2]
     datasets = [
         "yolo_full_FR",
         "yolo_full_FR,NO",
