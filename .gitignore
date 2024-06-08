@@ -1,8 +1,29 @@
+# virtural environments
 .venv**
+
+# data
 data/**
+
+# experiment tracking
 wandb/**
-*.pt
 YOLOv8/**
+
+# saved data
 notebooks/*.csv
+
+# models
+*.pt
+!YOLOv8/yolov10_best.pt
+
+# binary files
 **/*.pyc
+
+# saved images
 **/*.jpg
+
+# generated protobuf files
+services/*pb2.py
+services/*pb2_grpc.py
+
+# external depencencies
+third_party/**
