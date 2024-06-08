@@ -12,6 +12,7 @@ from zod.constants import AnnotationProject, Anonymization
 from zod.data_classes.frame import ZodFrame
 from zod.utils.utils import str_from_datetime
 
+# TODO: make as command line arguments
 # Parameters
 dataset_root = "/home/yshand/repos/ml-ops-ucu/data/zod"
 output_dir = dataset_root
@@ -87,7 +88,7 @@ def _convert_frame(
     ]
     return image_dict, anno_dicts
 
-# TODO: get rig of coco json generation, it is not needed here
+# TODO: get rig of coco json generation, it can be generated directly to YOLO
 def generate_coco_json(
     dataset: ZodFrames,
     split: str,
