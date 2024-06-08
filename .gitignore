@@ -4,3 +4,4 @@ wandb/**
 *.pt
 YOLOv8/**
 notebooks/*.csv
+**/*.pyc
