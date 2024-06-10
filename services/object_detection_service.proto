@@ -1,5 +1,8 @@
 syntax = "proto3";
 
+// TODO: separate to different services.
+// train and inference are completely different beasts. 
+// While train instance require huge amounts of GPU resources, inference is lightweight.
 service ObjectDetectionService {
     rpc Train (TrainRequest) returns (TrainResponse);
     rpc Inference (InferenceRequest) returns (InferenceResponse);

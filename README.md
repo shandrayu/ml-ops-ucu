@@ -57,6 +57,15 @@ docker run -it --entrypoint /bin/bash object-detection-service:v1.0
 
 Build && Run
 
+Note all parameters, they are important for correct running of the container! All paths shall be full.
+
 ```bash
-docker build -t object-detection-service:v1.0 . &&  docker run --gpus all -it object-detection-service:v1.0
+docker build -t object-detection-service:v1.0 . && docker run --gpus all --ipc=host -p 50051:50051 -v $(pwd)/data:/app/data -v $(pwd)/data:/$(pwd)/data -it object-detection-service:v1.0
+
+```
+
+## GRPC demo
+
+```bash
+python scripts/grpc_client.py
 ```

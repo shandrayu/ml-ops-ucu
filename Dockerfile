@@ -13,22 +13,26 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-opencv \
     git \
-    wget \
     && rm -rf /var/lib/apt/lists/* 
 
 RUN git clone https://github.com/zenseact/zod.git /app/third_party/zod \
     && cd /app/third_party/zod/zod \
-    && pip install zod
+    && pip3 install zod
 
-RUN pip install ultralytics \
-    && git clone https://github.com/THU-MIG/yolov10.git /app/third_party/yolo10 \
-    && cd /app/third_party/yolo10 \
-    && pip install . \
-    && wget -P /app/data/yolo_weights -q https://github.com/jameslahm/yolov10/releases/download/v1.0/yolov10n.pt \
-    && wget -P /app/data/yolo_weights -q https://github.com/jameslahm/yolov10/releases/download/v1.0/yolov10s.pt \
-    && wget -P /app/data/yolo_weights -q https://github.com/jameslahm/yolov10/releases/download/v1.0/yolov10m.pt
+RUN git clone https://github.com/THU-MIG/yolov10.git /app/third_party/yolo10
 
-RUN pip install --no-cache-dir grpcio grpcio-tools opencv-python-headless
+# setup.py for some reason is missing from yolo10 repo. 
+# We need it in order to correctly install modified ulralytics.
+COPY ./ultralytics/setup.py /app/third_party/yolo10
+
+RUN cd /app/third_party/yolo10 \
+    && pip3 install -r requirements.txt \
+    && pip3 install -e .
+
+RUN pip3 install --no-cache-dir grpcio grpcio-tools opencv-python-headless
+
+# Dockerfile debugging
+RUN pip3 install ptvsd
 
 COPY . /app
 
@@ -36,6 +40,11 @@ RUN python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. services
 
 ENV PYTHONPATH=/app
 
-EXPOSE 50051
+ENV TORCH_HOME=/app/torch_home
+
+# RUN mkdir -p /app/torch_home
+
+# Expose port 50051 for the gRPC service and 5678 for the debugger
+EXPOSE 50051 5678
 
 CMD ["python3", "grpc_server.py"]

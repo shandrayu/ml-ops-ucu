@@ -1,5 +1,6 @@
 from object_detection.yolo import ObjectDetectionResult, YoloTrainer, YoloInference
 from services import object_detection_service_pb2_grpc
+from services import object_detection_service_pb2
 
 
 class ObjectDetectionService(
@@ -9,13 +10,14 @@ class ObjectDetectionService(
         self.model_path = model_path
         self.yolo_trainer = YoloTrainer(
             model_path=model_path,
-            # TODO: put valid data
-            data_config_path="path/to/config",
-            project="project_name",
+            # TODO: pass dataset file as parameter
+            # TODO: is there a better way to handle dataset other that mounting volume?
+            data_config_path="/app/data/zod/yolo_mini/dataset.yaml",
+            project="YOLOv10",
         )
         self.yolo_inference = YoloInference(model_path=model_path)
 
-    def train(self, request, context):
+    def Train(self, request, context):
         self.yolo_trainer.train(
             run_name=request.run_name,
             epochs=request.epochs,
@@ -24,7 +26,7 @@ class ObjectDetectionService(
         )
         return object_detection_service_pb2.TrainResponse(message="Training started")
 
-    def inference(self, request, context):
+    def Inference(self, request, context):
         results = self.yolo_inference.run(image_path=request.image_path)
         response = object_detection_service_pb2.InferenceResponse()
         for result in results:
@@ -41,10 +43,11 @@ class ObjectDetectionService(
             response.results.append(detection_result)
         return response
 
-    def deploy_best_model(self, request, context):
+    def DeployBestModel(self, request, context):
         # Placeholder for deploying the best model.
         # Now it does not do anything.
         # This command will recreate YoloInference with best model from training.
+        print("Deploy best model called. No implementation yet")
         return object_detection_service_pb2.DeployBestModelResponse(
             message="Best model deployed"
         )
