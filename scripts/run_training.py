@@ -32,7 +32,7 @@ def run_yolo_training(models, batches, epochs, datasets, project_name):
                         data_config_path=data_config_path,
                         project=project_name,
                     )
-                    yolo.run_training(epochs=epoch, batch=batch, run_name=run_name)
+                    yolo.train(epochs=epoch, batch=batch, run_name=run_name)
 
 
 if __name__ == "__main__":
@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     models = ["data/yolo_weights/yolov10n.pt"]
     batches = [16]
-    epochs = [2]
+    epochs = [5]
     datasets = [
         "yolo_full_FR",
         "yolo_full_FR,NO",
