@@ -20,6 +20,7 @@ notebooks/*.csv
 
 # saved images
 **/*.jpg
+**/*.txt
 
 # generated protobuf files
 services/*pb2.py
