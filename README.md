@@ -1,25 +1,27 @@
 # ML Ops UCU course project
 
+- [ML Ops UCU course project](#ml-ops-ucu-course-project)
+  - [Video demonstration](#video-demonstration)
+  - [Fine-tune YOLO 10](#fine-tune-yolo-10)
+  - [Protobuf API](#protobuf-api)
+  - [Docker](#docker)
+  - [GRPC demo](#grpc-demo)
+
+## Video demonstration
+
+[Link to the video](https://drive.google.com/file/d/1SjBKqrDIgt-dsSnYpVi4ZGizcn7X4G7P/view?usp=sharing).
+
 ## Fine-tune YOLO 10
 
-1. `pip install -q git+https://github.com/THU-MIG/yolov10.git`
-2. Get weights
+1. Install YOLO10 - see Docker file for details.
+
+2. Train
 
    ```bash
-   wget -P data/yolo_weights -q https://github.com/jameslahm/yolov10/releases/download/v1.0/yolov10n.pt &&
-   wget -P data/yolo_weights -q https://github.com/jameslahm/yolov10/releases/download/v1.0/yolov10s.pt &&
-   wget -P data/yolo_weights -q https://github.com/jameslahm/yolov10/releases/download/v1.0/yolov10m.pt
+   python scripts/run_training.py
    ```
 
-3. Train
-
-   ```bash
-   yolo task=detect mode=train epochs=25 batch=32 plots=True \
-   model=data/yolo_weights/yolov10n.pt \
-   data=data/zod/yolo_mini/dataset.yaml
-   ```
-
-## API - protobuf
+## Protobuf API
 
 Install dependencies
 
