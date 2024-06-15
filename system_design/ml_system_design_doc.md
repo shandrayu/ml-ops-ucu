@@ -1,6 +1,6 @@
 # Visual Object Detection for Autonomous Driving - High-Level System Design
 
-System design doc is based on [https://github.com/eugeneyan/ml-design-docs](https://github.com/eugeneyan/ml-design-docs) and contains original questions for readability.
+System design doc is based on [https://github.com/eugeneyan/ml-design-docs](https://github.com/eugeneyan/ml-design-docs).
 
 ## 1. Overview
 
@@ -68,7 +68,7 @@ Out of scope:
 - Deployment on the embedded device. Thought it would be very good for this course, as for now I do not have any embedded device with me.
 - Getting very good detection score. The purpose of this project is to learn building data pipelines.
 - Vision object detection for static objects.
-- Exact metric definition. It requires full automotive system design with safety goals, functional safety considerations and usage of road fatalities statistics.
+- Exact metric threshold requirements. It requires full automotive system design with safety goals, functional safety considerations and usage of road fatalities statistics.
 - Model speedup (inference time optimizations).
 - VRAM constraints.
 - Interface with other modules.
