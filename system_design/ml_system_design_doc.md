@@ -155,6 +155,38 @@ graph TD
     L --> L2[Lidar object detection]
 ```
 
+Proposed service architecture for the first iteration. The diagram illustrates the interaction between the ObjectDetectionService and other components.
+
+```mermaid
+graph TD
+    subgraph VisualObjectDetectionService
+        B1[Train]
+        B2[Inference]
+
+    end
+    
+    B1 --> C[TrainRequest]
+    B1 --> G[DeployBestModel]
+    C --> D[TrainResponse]
+    G --> K[DeployBestModelResponse]
+    
+    B2 --> E[InferenceRequest]
+    E --> F[InferenceResponse]
+    
+```
+
+TODO: Separate services for Train and Inference.
+
+Train and inference are completely different beasts. While train instance require huge amounts of GPU resources, inference is lightweight. Example:
+
+```mermaid
+graph TD
+    subgraph ObjectDetection
+        direction LR
+        A[TrainService] --> |On training end| B[DeploymentService] --> |DeployBestModel| C[InferenceService] -->|Detection result| D((end))
+    end
+```
+
 ### 6.2. Infra
 
 [//]: # (> How will you host your system? On-premise, cloud, or hybrid? This will define the rest of this section)
@@ -187,6 +219,69 @@ Uncertainties:
 - Critical weather and earth conditions (for example, hurricane, tsunami, earthquake).
 
 ## 7. Appendix
+
+### 7.1 gRPC service structure
+
+A diagram for the gRPC services that helps visualize the different requests and responses:
+
+```mermaid
+classDiagram
+    class ObjectDetectionService {
+        +Train(TrainRequest) : TrainResponse
+        +Inference(InferenceRequest) : InferenceResponse
+        +DeployBestModel(DeployBestModelRequest) : DeployBestModelResponse
+    }
+
+    class TrainRequest {
+        run_name: string
+        epochs: int32
+        batch_size: int32
+        plots: bool
+    }
+
+    class TrainResponse {
+        message: string
+    }
+
+    class InferenceRequest {
+        image_path: string
+    }
+
+    class InferenceResponse {
+        results: ObjectDetectionResult[]
+    }
+
+    class DeployBestModelRequest {
+    }
+
+    class DeployBestModelResponse {
+        message: string
+    }
+
+    class ObjectDetectionResult {
+        xyxy: BBox[]
+        confidence: float[]
+        visualization_image: bytes
+    }
+
+    class BBox {
+        x1: int32
+        y1: int32
+        x2: int32
+        y2: int32
+    }
+
+    ObjectDetectionService --> TrainRequest : uses
+    TrainRequest --> TrainResponse : returns
+    ObjectDetectionService --> InferenceRequest : uses
+    InferenceRequest --> InferenceResponse : returns
+    ObjectDetectionService --> DeployBestModelRequest : uses
+    DeployBestModelRequest  --> DeployBestModelResponse : returns
+    InferenceResponse *-- ObjectDetectionResult : contains
+    ObjectDetectionResult *-- BBox : contains
+
+
+```
 
 ### 7.1. Alternatives
 
