@@ -47,26 +47,30 @@ def run(train):
         print("Train response:", train_response.message)
 
     # Inference request
-    inference_request = object_detection_service_pb2.InferenceRequest(
-        image_path="data/zod/yolo_full_DE,FR,NO,HU,GB/images/val/002707_india_2020-11-20T09:14:16.553489Z.jpg"
-        # image_path="data/zod/yolo_full_DE,FR,NO,HU,GB/images/val/004800_golf_2021-02-24T08:58:18.891532Z.jpg"
-        # image_path="data/zod/yolo_full_FR/images/train/002699_golf_2021-02-23T12:18:08.105011Z.jpg"
-    )
-    inference_response = stub.Inference(inference_request)
-    print("Inference response results:")
-    for result in inference_response.results:
-        print("Bounding Boxes:\n", result.xyxy)
-        print("Confidence Scores:", result.confidence)
-        visualization_image = decode_visualization_image(result.visualization_image)
-        scale_percent = 50
-        width = int(visualization_image.shape[1] * scale_percent / 100)
-        height = int(visualization_image.shape[0] * scale_percent / 100)
-        new_dimensions = (width, height)
-        downscaled_image = cv2.resize(
-            visualization_image, new_dimensions, interpolation=cv2.INTER_AREA
+    for image_path in [
+        "data/zod/yolo_full_DE,FR,NO,HU,GB/images/val/002707_india_2020-11-20T09:14:16.553489Z.jpg",
+        "data/zod/yolo_full_DE,FR,NO,HU,GB/images/val/004800_golf_2021-02-24T08:58:18.891532Z.jpg",
+        "data/zod/yolo_full_FR/images/train/002699_golf_2021-02-23T12:18:08.105011Z.jpg",
+    ]:
+
+        inference_request = object_detection_service_pb2.InferenceRequest(
+            image_path=image_path
         )
-        cv2.imshow("Visualization Image", downscaled_image)
-        cv2.waitKey(0)
+        inference_response = stub.Inference(inference_request)
+        print("Inference response results:")
+        for result in inference_response.results:
+            print("Bounding Boxes:\n", result.xyxy)
+            print("Confidence Scores:", result.confidence)
+            visualization_image = decode_visualization_image(result.visualization_image)
+            scale_percent = 50
+            width = int(visualization_image.shape[1] * scale_percent / 100)
+            height = int(visualization_image.shape[0] * scale_percent / 100)
+            new_dimensions = (width, height)
+            downscaled_image = cv2.resize(
+                visualization_image, new_dimensions, interpolation=cv2.INTER_AREA
+            )
+            cv2.imshow("Visualization Image", downscaled_image)
+            cv2.waitKey(0)
 
     # Deploying best model
     deploy_best_model_request = object_detection_service_pb2.DeployBestModelRequest()

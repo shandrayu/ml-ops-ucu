@@ -7,6 +7,12 @@
   - [Protobuf API](#protobuf-api)
   - [Docker](#docker)
   - [GRPC demo](#grpc-demo)
+  - [Experiment tracking](#experiment-tracking)
+    - [Summary](#summary)
+    - [Setup](#setup)
+      - [Minio](#minio)
+      - [Generate docker compose environment file](#generate-docker-compose-environment-file)
+      - [Docker compose](#docker-compose)
 
 ## System design
 
@@ -76,4 +82,66 @@ docker build -t object-detection-service:v1.0 . && docker run --gpus all --ipc=h
 
 ```bash
 python scripts/grpc_client.py
+```
+
+## Experiment tracking
+
+### Summary
+
+If secrets are already generated, build image and run with command
+
+```bash
+docker build -t object-detection-service:v1.0 . && docker-compose up -d
+```
+
+```bash
+docker compose down
+```
+
+MLFlow address http://127.0.0.1:5000.
+
+### Setup
+
+#### Minio
+
+- Run minio
+- Login to the console
+- Generate credentials
+- Save credentials to `credentials.json`.
+
+```bash
+docker pull minio/minio
+```
+
+```bash
+docker volume create minio-data
+```
+
+To run independently (usually not needed because it is done in docker-compose):
+
+```bash
+docker run -d --name minio \
+  -p 9000:9000 \
+  -p 9001:9001 \
+  -v minio-data:/data \
+  -e "MINIO_ROOT_USER=minioadmin" \
+  -e "MINIO_ROOT_PASSWORD=minioadmin" \
+  minio/minio server /data --console-address ":9001"
+```
+
+You can now access the Minio server using the browser at (http://localhost:9000)[http://localhost:9000] and the Minio console at [http://localhost:9001](http://localhost:9001) using the credentials `minioadmin` for both the access key and secret key.
+
+#### Generate docker compose environment file
+
+```bash
+./generate_env.sh
+```
+
+#### Docker compose
+
+```bash
+sudo curl -L "https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+docker-compose --version
 ```

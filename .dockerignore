@@ -42,3 +42,5 @@ YOLOv8
 
 # Ignore virtual environments
 .venv**
+
+!requirements.txt

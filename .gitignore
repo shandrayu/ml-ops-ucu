@@ -21,6 +21,7 @@ notebooks/*.csv
 # saved images
 **/*.jpg
 **/*.txt
+!requirements.txt
 
 # generated protobuf files
 services/*pb2.py
@@ -28,3 +29,9 @@ services/*pb2_grpc.py
 
 # external depencencies
 third_party/**
+
+# docker compose environment file
+.env
+
+# minio credentials
+credentials.json

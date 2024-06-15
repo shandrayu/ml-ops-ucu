@@ -1,9 +1,16 @@
-# TODO: it should be YOLOv10, but it does not work for some reason
 from ultralytics import YOLOv10
+from ultralytics import settings
+import mlflow
+mlflow.set_tracking_uri("http://mlflow:5000")
+
+settings.update({"mlflow": True, 'wandb': False})
+print(settings)
+
 from typing import List, Tuple
 from dataclasses import dataclass
 import cv2
 import base64
+
 
 @dataclass
 class ObjectDetectionResult:
@@ -22,9 +29,9 @@ class YoloTrainer:
         :param data_config_path: Path to the dataset YAML configuration file.
         """
         # TODO: model name is not used now. Only the smallest (nano) used for now
-        self.model_path = model_path
+        # self.model_path = model_path
         self.data_config_path = data_config_path
-        self.model =  YOLOv10.from_pretrained("jameslahm/yolov10n") #YOLO(model_path)
+        self.model = YOLOv10.from_pretrained("jameslahm/yolov10n")  # YOLO(model_path)
         self.project = project
 
     # TODO: read training parameters from the file. If we will add augmentation, there will be too much parameters
