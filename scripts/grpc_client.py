@@ -3,6 +3,22 @@
 import base64
 import cv2
 import numpy as np
+from datetime import datetime
+
+
+def append_timestamp_to_name(name: str) -> str:
+    """
+    Appends the current date and time to the given name in the format YYMMDDHHMM.
+
+    Args:
+    name (str): The original name to which the timestamp will be appended.
+
+    Returns:
+    str: The name with the appended timestamp.
+    """
+    current_time = datetime.now()
+    timestamp = current_time.strftime("%y%m%d%H%M%S")
+    return f"{name}_{timestamp}"
 
 
 def decode_visualization_image(encoded_image):
@@ -41,7 +57,10 @@ def run(train):
     # Training request
     if train:
         train_request = object_detection_service_pb2.TrainRequest(
-            run_name="test_run", epochs=1, batch_size=16, plots=True
+            run_name=append_timestamp_to_name("test_run"),
+            epochs=1,
+            batch_size=16,
+            plots=True,
         )
         train_response = stub.Train(train_request)
         print("Train response:", train_response.message)
