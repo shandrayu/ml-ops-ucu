@@ -194,43 +194,87 @@ graph TD
 TODO: delete
 -Module is run on embedded device with GPU (like NVidia drive PX) in the car.-
 
-AWS, training and evaluation.
+Module training and evaluation on Amazon Web Services.
+
+Training sequence
 
 ```mermaid
-graph LR
+graph TD
   subgraph S3 Storage
-    RAW_DATA[Raw Data]
-    PROCESSED_DATA[Processed Data]
+    RAW_DATA[Raw Dataset]
+    PROCESSED_DATASET[Processed Dataset]
     MODEL_ARTIFACTS[Model Artifacts]
+    TRAINING_ARTIFACTS[Training Artifacts]
   end
 
   subgraph SageMaker
-    PROCESSING[Processing Job]
-    TRAINING[Training Job]
+    PROCESSING[Dataset Formation: SageMaker Processing Job]
+    TRAINING[Training: SageMaker Training Job]
+  end
+
+  TRAINING --> |Deploy Best Model| INFERENCE[Inference]
+
+  USER_TRAIN_SCRIPT[User Script, train.py] --> |Trigger Dataset Formation| PROCESSING
+  PROCESSING -->|Write Processed Data| PROCESSED_DATASET
+  PROCESSED_DATASET -->|Read Processed Data| TRAINING
+  TRAINING -->|Write Model Artifacts| MODEL_ARTIFACTS
+  TRAINING -->|Write Training Artifacts| TRAINING_ARTIFACTS
+  PROCESSING --> |Trigger Training| TRAINING
+  RAW_DATA -->|Read Raw Data| PROCESSING
+```
+
+Inference with one picture
+
+```mermaid
+graph TD
+  subgraph Amazon Elastic Container Service: ECS
+    INFERENCE_SERVICE[Inference Service]
+  end
+
+  subgraph S3 Storage
+    MODEL_ARTIFACTS[Model Artifacts]
+  end
+
+  USER_INFERENCE_SCRIPT[User Script, inference.py] -->|Single Image Inference Request| INFERENCE_SERVICE
+
+  INFERENCE_SERVICE -->|Inference Result| USER_INFERENCE_SCRIPT
+
+  TRAINING -->|Write Model Artifacts| MODEL_ARTIFACTS
+  MODEL_ARTIFACTS --> |Deploy Best Model| INFERENCE_SERVICE
+
+```
+
+Inference with dataset config
+
+```mermaid
+graph TD
+  subgraph S3 Storage
+    RAW_DATA[Raw Data]
+    PROCESSED_DATASET[Processed Dataset]
+    MODEL_ARTIFACTS[Model Artifacts]
   end
 
   subgraph Amazon Elastic Container Service: ECS
     INFERENCE_SERVICE[Inference Service]
   end
 
+  subgraph SageMaker
+    PROCESSING[Dataset Formation Job]
+  end
+
+  USER_INFERENCE_SCRIPT -->|Dataset Config Inference Request| INFERENCE_SERVICE
+
+  INFERENCE_SERVICE -->|Inference Results for Dataset| USER_INFERENCE_SCRIPT
+
+  INFERENCE_SERVICE -->|Trigger Dataset Formation| PROCESSING
+  PROCESSING -->|Write Processed Data| PROCESSED_DATASET
+  INFERENCE_SERVICE -->|Run Inference on Dataset| PROCESSED_DATASET
+  INFERENCE_SERVICE -->|Load Dataset| PROCESSED_DATASET
+
+  TRAINING --> |Write Model Artifacts| MODEL_ARTIFACTS
+  MODEL_ARTIFACTS --> |Deploy Best Model| INFERENCE_SERVICE
+
   RAW_DATA -->|Read Raw Data| PROCESSING
-  PROCESSED_DATA -->|Read Processed Data| TRAINING
-  TRAINING -->|Write Model Artifacts| MODEL_ARTIFACTS
-  MODEL_ARTIFACTS -->|Deploy Best Model| INFERENCE_SERVICE
-
-  TRAIN_SCRIPT[User Script, train.py] --> PROCESSING --> |Trigger Training| TRAINING
-
-  USER[User Script, inference.py] -->|Single Image Inference Request| INFERENCE_SERVICE
-  INFERENCE_SERVICE -->|Inference Result| USER
-
-  USER[User Script, inference.py] -->|Dataset Config Inference Request| INFERENCE_SERVICE
-  INFERENCE_SERVICE -->|Trigger Dataset Formation Job| PROCESSING
-  PROCESSING -->|Write Processed Data| PROCESSED_DATA
-  INFERENCE_SERVICE -->|Run Inference on Dataset| PROCESSED_DATA
-  INFERENCE_SERVICE -->|Inference Results for Dataset| USER
-
-  INFERENCE_SERVICE -->|Load Input Image| RAW_DATA
-
 ```
 
 ### 6.3. Performance (Throughput, Latency)
