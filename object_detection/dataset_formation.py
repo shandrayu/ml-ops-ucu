@@ -1,7 +1,6 @@
 import os
 import json
 import yaml
-import numpy as np
 from pathlib import Path
 from typing import List, Tuple, Dict, Any
 from tqdm.contrib.concurrent import process_map
@@ -11,25 +10,13 @@ from zod.anno.object import OBJECT_CLASSES, ObjectAnnotation
 from zod.constants import AnnotationProject, Anonymization
 from zod.data_classes.frame import ZodFrame
 from zod.utils.utils import str_from_datetime
+import csv
+import shutil
+import pandas as pd
 
-def generate_nested_list(base_list):
-    nested_list = []
-    
-    for i in range(len(base_list)):
-        nested_list.append(base_list[:i+1])
-    
-    return nested_list
 
-# TODO: make as command line arguments
-# Parameters
-dataset_root = "/home/yshand/repos/ml-ops-ucu/data/zod"
-output_dir = dataset_root
-classes = ["Vehicle", "Pedestrian", "VulnerableVehicle"]
-countries_list = generate_nested_list(["FR", "NO", "GB", "IE", "LU"])
-
-anonymization = Anonymization.BLUR
-use_png = False
-version = "full"
+ANONYMIZATION = Anonymization.BLUR
+USE_PNG = False
 
 # Map classes to categories, starting from 1
 CATEGORY_NAME_TO_ID = {cls: i + 1 for i, cls in enumerate(OBJECT_CLASSES)}
@@ -150,13 +137,13 @@ def generate_coco_json(
     return coco_json
 
 def create_symlink_and_label(args):
-    image_info, annotations, images_dir, labels_dir, dataset_root = args
+    image_info, annotations, images_dir, labels_dir, dataset_root, copy = args
     image_id = image_info["id"]
     image_width = image_info["width"]
     image_height = image_info["height"]
     image_path = Path(image_info["file_name"])
     symlink_path = images_dir / image_path.name
-    create_symlink(Path(dataset_root) / image_path, symlink_path)
+    create_symlink(Path(dataset_root) / image_path, symlink_path, copy)
 
     label_path = labels_dir / f"{image_path.stem}.txt"
     with open(label_path, "w") as f:
@@ -186,10 +173,14 @@ def create_symlink_and_label(args):
             f.write(f"{category_id} {x_center_normalized} {y_center_normalized} {bbox_width_normalized} {bbox_height_normalized}\n")
 
 
-def create_symlink(src: Path, dst: Path):
+def create_symlink(src: Path, dst: Path, copy: bool):
     dst.parent.mkdir(parents=True, exist_ok=True)
     if not dst.exists():
-        os.symlink(src, dst)
+        if copy:
+            shutil.copy(src, dst)
+        else:
+            os.symlink(src, dst)
+
 
 
 def save_yaml_file(yolo_output_dir, classes, train_images_dir, val_images_dir):
@@ -204,13 +195,15 @@ def save_yaml_file(yolo_output_dir, classes, train_images_dir, val_images_dir):
     with open(yaml_path, "w") as yaml_file:
         yaml.dump(yaml_content, yaml_file, default_flow_style=False)
 
+    return yaml_path
+
 
 def convert_to_yolo_format(
-    dataset_root: str, version: str, output_dir: str, countries: List[str]
+    dataset_root: str, version: str, output_dir: str, countries: List[str], classes: List[str], copy_files=False
 ):
     zod_frames = ZodFrames(dataset_root, version)
     yolo_folder_name = (
-        f"yolo_{version}" if not countries else f"yolo_{version}_{','.join(countries)}"
+        f"yolo_{version}" if not countries else f"yolo_{version}_{'_'.join(countries)}"
     )
     yolo_output_dir = Path(output_dir) / yolo_folder_name
 
@@ -221,8 +214,8 @@ def convert_to_yolo_format(
             split=split,
             classes=classes,
             allowed_country_codes=countries,
-            anonymization=anonymization,
-            use_png=use_png,
+            anonymization=ANONYMIZATION,
+            use_png=USE_PNG,
         )
 
         coco_json_path = yolo_output_dir / f"coco_{split}.json"
@@ -248,6 +241,7 @@ def convert_to_yolo_format(
                 images_dir,
                 labels_dir,
                 dataset_root,
+                copy_files,
             )
             for image_info in image_infos
         ]
@@ -259,14 +253,67 @@ def convert_to_yolo_format(
             chunksize=50 if version == "full" else 1,
         )
 
-    save_yaml_file(
+    dataset_yaml_path = save_yaml_file(
         yolo_output_dir,
         classes,
         yolo_output_dir / "images/train",
         yolo_output_dir / "images/val",
     )
 
+    return dataset_yaml_path
 
-# Run the conversion for each set of countries
-for countries in countries_list:
-    convert_to_yolo_format(dataset_root, version, output_dir, countries)
+
+def yolo_dataset_formation(country_list: List[str], 
+                           classes: List[str], 
+                           version: str, 
+                           data_path: str, 
+                           copy_files: bool = False):
+    dataset_root = Path(data_path)
+    output_dir = dataset_root
+    dataset_record_file = dataset_root / "datasets_record.csv"
+    
+    if not dataset_record_file.exists():
+        with open(dataset_record_file, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(["dataset_name", "yaml_path"])
+    
+    def update_csv(dataset_name, yaml_path):
+        with open(dataset_record_file, 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([dataset_name, yaml_path])
+
+    countries_name = '_'.join(country_list)
+    dataset_name = f"yolo_{countries_name}"
+
+    df = pd.read_csv(dataset_record_file, header=0)
+    existing_datasets = pd.Series(df['yaml_path'].values, index=df['dataset_name']).to_dict()
+
+    if dataset_name in existing_datasets:
+        return Path(existing_datasets[dataset_name])
+    
+    output_dir = data_path
+    dataset_yaml_path = convert_to_yolo_format(dataset_root=dataset_root, 
+                                               version=version,
+                                               output_dir=output_dir,
+                                               countries=country_list,
+                                               classes=classes,
+                                               copy_files=True,
+    )
+
+    update_csv(dataset_name, dataset_yaml_path)
+
+    return dataset_yaml_path
+
+if __name__ == "__main__":
+    VERSION = "full"
+    DATASET_ROOT = "/Users/yshand/repos/ml-ops-ucu/data/zod"
+    CLASSES = ["Vehicle", "Pedestrian", "VulnerableVehicle"]
+    COUNTRIES = ["FR", "NO", "GB", "IE", "LU"]
+    COPY_FILES = True
+    dataset_file_path = yolo_dataset_formation(country_list=COUNTRIES,
+                                               classes=CLASSES,
+                                               version=VERSION, 
+                                               data_path=DATASET_ROOT, 
+                                               copy_files=COPY_FILES)
+    print(f"Dataset for countries {'_'.join(COUNTRIES)} is at {dataset_file_path}")
+

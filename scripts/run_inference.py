@@ -23,6 +23,7 @@ def main():
 
     args = parser.parse_args()
 
+    # TODO: replace to API to end point call
     yolo_wrapper = YoloInference(model_path=args.model)
     results = yolo_wrapper.run(args.image)
     output_idx = 0

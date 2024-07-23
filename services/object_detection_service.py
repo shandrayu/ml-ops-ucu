@@ -13,7 +13,7 @@ class ObjectDetectionService(
             # TODO: pass dataset file as parameter
             # TODO: is there a better way to handle dataset other that mounting volume?
             data_config_path="/app/data/zod/yolo_mini/dataset.yaml",
-            project="YOLOv10",
+            project="YOLOv8",
         )
         self.yolo_inference = YoloInference(model_path=model_path)
 

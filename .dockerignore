@@ -33,7 +33,7 @@ YOLOv8
 
 # Models
 *.pt
-!YOLOv8/yolov10_best.pt
+!YOLOv8/yolov8n_best.pt
 
 # Ignore Python cache files
 **/__pycache__/

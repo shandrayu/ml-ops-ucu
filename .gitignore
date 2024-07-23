@@ -35,3 +35,6 @@ third_party/**
 
 # minio credentials
 credentials.json
+
+runs
+mlruns

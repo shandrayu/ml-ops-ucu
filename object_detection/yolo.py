@@ -1,9 +1,11 @@
-from ultralytics import YOLOv10
+from ultralytics import YOLO
 from ultralytics import settings
 import mlflow
+
+# TODO: all must be parameters, read from a parameter file
 mlflow.set_tracking_uri("http://mlflow:5000")
 
-settings.update({"mlflow": True, 'wandb': False})
+settings.update({"mlflow": True, "wandb": False})
 print(settings)
 
 from typing import List, Tuple
@@ -31,7 +33,7 @@ class YoloTrainer:
         # TODO: model name is not used now. Only the smallest (nano) used for now
         # self.model_path = model_path
         self.data_config_path = data_config_path
-        self.model = YOLOv10.from_pretrained("jameslahm/yolov10n")  # YOLO(model_path)
+        self.model = YOLO("yolov8n.pt")
         self.project = project
 
     # TODO: read training parameters from the file. If we will add augmentation, there will be too much parameters
@@ -64,9 +66,9 @@ class YoloInference:
         # https://github.com/THU-MIG/yolov10/issues/46
         model_name = model_path.split("/")[-1]
         assert (
-            "yolov10" in model_name
-        ), f"Rename model name '{model_name}' to contain 'yolov10'. Otherwise, it will fail...."
-        self.model = YOLOv10(model_path)
+            "yolov8" in model_name
+        ), f"Rename model name '{model_name}' to contain 'yolov8'. Otherwise, it will fail...."
+        self.model = YOLO(model_path)
 
     def run(self, image_path):
         """
