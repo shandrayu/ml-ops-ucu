@@ -4,3 +4,5 @@ opencv-python-headless
 mlflow
 boto3
 ultralytics
+sagemaker
+
